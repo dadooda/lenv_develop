@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+# Get script path.
+SP=${0%/*}
+export DSHELL_ROOT=`realpath "${SP}"`
+export DSHELL_LENV="${DSHELL_ROOT}/vendor/lenv/lenv.sh"
+
+if [ ! -r "${DSHELL_LENV}" ]; then
+  echo "Error: \`${DSHELL_LENV}\` is not readable" >&2
+  echo "Perhaps you should clone Lenv into \`vendor/lenv/\`" >&2
+  exit 1
+fi
+
+# NOTE: Careful with those quotes in the <<EOT block!
+bash --noprofile --rcfile <(cat <<EOT
+# BEGIN on-the-fly rcfile.
+
+e() {
+  mcedit "${DSHELL_LENV}" \
+  && r
+}
+
+r() {
+  echo "Loading \\\`${DSHELL_LENV}\\\`"
+  . "${DSHELL_LENV}"
+}
+
+export PS1="\033[1;31m(lenv)\033[0m \w\a\$ "
+export _LENV_FN_ROOT="${DSHELL_ROOT}"
+
+echo
+echo "Entering development shell"
+echo
+echo "* Run \\\`e\\\` to edit and reload core."
+echo "* Run \\\`r\\\` to reload core."
+echo
+
+r
+
+# END on-the-fly rcfile.
+EOT
+)
